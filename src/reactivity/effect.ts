@@ -2,15 +2,17 @@
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:38:24
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-02 22:22:17
+ * @LastEditTime: 2022-10-03 18:31:30
  * @FilePath: \mini-vue\src\reactivity\effect.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 class ReactiveEffect {
   private _fn: any;
+  public scheduler: Function | undefined;
 
-  constructor(fn) {
+  constructor(fn, scheduler?) {
     this._fn = fn;
+    this.scheduler = scheduler;
   }
 
   run() {
@@ -26,8 +28,11 @@ let activeEffect;
  * @param {*} fn 依赖的方法
  * @return {*}
  */
-export function effect(fn) {
-  const _effect = new ReactiveEffect(fn);
+type effectOptions = {
+  scheduler?: Function;
+};
+export function effect(fn, options: effectOptions = {}) {
+  const _effect = new ReactiveEffect(fn, options.scheduler);
   _effect.run();
 
   return _effect.run.bind(_effect);
@@ -66,6 +71,10 @@ export function trigger(target, key) {
   let dep = depsMap.get(key);
 
   for (const effect of dep) {
-    effect.run();
+    if (effect.scheduler) {
+      effect.scheduler();
+    } else {
+      effect.run();
+    }
   }
 }
