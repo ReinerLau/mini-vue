@@ -2,7 +2,7 @@
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:38:24
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-02 13:41:19
+ * @LastEditTime: 2022-10-02 22:22:17
  * @FilePath: \mini-vue\src\reactivity\effect.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -15,7 +15,7 @@ class ReactiveEffect {
 
   run() {
     activeEffect = this;
-    this._fn();
+    return this._fn();
   }
 }
 
@@ -29,10 +29,12 @@ let activeEffect;
 export function effect(fn) {
   const _effect = new ReactiveEffect(fn);
   _effect.run();
+
+  return _effect.run.bind(_effect);
 }
 
 // 收集不同响应式对象对应的依赖容器
-const targetMaps = new Map();
+const targetMap = new Map();
 /**
  * @description: 收集依赖，以key为基准
  * @param {*} target 要操作的对象
@@ -40,10 +42,10 @@ const targetMaps = new Map();
  * @return {*}
  */
 export function track(target, key) {
-  let depsMap = targetMaps.get(target);
+  let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
-    targetMaps.set(target, depsMap);
+    targetMap.set(target, depsMap);
   }
   let dep = depsMap.get(key);
   if (!dep) {
@@ -60,7 +62,7 @@ export function track(target, key) {
  * @return {*}
  */
 export function trigger(target, key) {
-  let depsMap = targetMaps.get(target);
+  let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
 
   for (const effect of dep) {
