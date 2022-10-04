@@ -1,14 +1,19 @@
+import { extend } from "../shared";
+
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:38:24
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-03 18:31:30
+ * @LastEditTime: 2022-10-04 10:28:43
  * @FilePath: \mini-vue\src\reactivity\effect.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 class ReactiveEffect {
   private _fn: any;
-  public scheduler: Function | undefined;
+  deps = [];
+  active = true;
+  onStop?: () => void;
+  scheduler?: Function;
 
   constructor(fn, scheduler?) {
     this._fn = fn;
@@ -19,6 +24,22 @@ class ReactiveEffect {
     activeEffect = this;
     return this._fn();
   }
+
+  stop() {
+    if (this.active) {
+      cleanupEffect(this);
+      if (this.onStop) {
+        this.onStop();
+      }
+      this.active = false;
+    }
+  }
+}
+
+function cleanupEffect(effect) {
+  effect.deps.forEach((dep: any) => {
+    dep.delete(effect);
+  });
 }
 
 // 正在执行的依赖实例
@@ -28,14 +49,18 @@ let activeEffect;
  * @param {*} fn 依赖的方法
  * @return {*}
  */
-type effectOptions = {
-  scheduler?: Function;
-};
-export function effect(fn, options: effectOptions = {}) {
+export function effect(fn, options: any = {}) {
   const _effect = new ReactiveEffect(fn, options.scheduler);
+  // 方便后续合并各种选项
+  extend(_effect, options);
+
   _effect.run();
 
-  return _effect.run.bind(_effect);
+  const runner: any = _effect.run.bind(_effect);
+  // 存储当前 runner 对应的 effect 实例
+  runner._effect = _effect;
+
+  return runner;
 }
 
 // 收集不同响应式对象对应的依赖容器
@@ -57,7 +82,13 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
+
+  // 没有 effect 操作，该值可能为 undefined
+  if (!activeEffect) return;
+
   dep.add(activeEffect);
+  // 反向收集当前 effect 被收录其中的依赖集合
+  activeEffect.deps.push(dep);
 }
 
 /**
@@ -77,4 +108,8 @@ export function trigger(target, key) {
       effect.run();
     }
   }
+}
+
+export function stop(runner) {
+  runner._effect.stop();
 }

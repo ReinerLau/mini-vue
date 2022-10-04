@@ -2,12 +2,12 @@
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:31:33
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-03 18:45:55
+ * @LastEditTime: 2022-10-04 10:26:29
  * @FilePath: \mini-vue\src\reactivity\tests\effect.spec.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { reactive } from "../reactive";
-import { effect } from "../effect";
+import { effect, stop } from "../effect";
 
 describe("effect", () => {
   it("happy path", () => {
@@ -64,5 +64,39 @@ describe("effect", () => {
     // 手动触发依赖
     run();
     expect(dummy).toBe(2);
+  });
+
+  it("stop", () => {
+    let dummy;
+    const obj = reactive({ prop: 1 });
+    const runner = effect(() => {
+      dummy = obj.prop;
+    });
+    obj.prop = 2;
+    expect(dummy).toBe(2);
+    // stop 之后无法再触发依赖
+    stop(runner);
+    obj.prop = 3;
+    expect(dummy).toBe(2);
+    // 但可以手动运行
+    runner();
+    expect(dummy).toBe(3);
+  });
+
+  it("onStop", () => {
+    let dummy;
+    const onStop = jest.fn(() => {});
+    const obj = reactive({ foo: 1 });
+    const runner = effect(
+      () => {
+        dummy = obj.foo;
+      },
+      {
+        onStop,
+      }
+    );
+    // 监听 stop 被调用后做进一步处理
+    stop(runner);
+    expect(onStop).toHaveBeenCalledTimes(1);
   });
 });
