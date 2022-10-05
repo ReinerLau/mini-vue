@@ -1,0 +1,26 @@
+/*
+ * @Author: reiner850593913 lk850593913@gmail.com
+ * @Date: 2022-10-05 08:40:40
+ * @LastEditors: reiner850593913 lk850593913@gmail.com
+ * @LastEditTime: 2022-10-05 09:09:02
+ * @FilePath: \mini-vue\src\reactivity\tests\readonly.spec.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
+import { readonly } from "../reactive";
+
+describe("readonly", () => {
+  it("happy path", () => {
+    const original = { foo: 1 };
+    const observed = readonly(original);
+
+    expect(observed).not.toBe(original);
+    expect(observed.foo).toBe(1);
+  });
+
+  it("should call console.warn when set", () => {
+    const observed = readonly({ foo: 1 });
+    console.warn = jest.fn();
+    observed.foo = 2;
+    expect(console.warn).toHaveBeenCalled();
+  });
+});
