@@ -2,12 +2,13 @@
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-05 08:54:02
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-06 10:24:38
+ * @LastEditTime: 2022-10-07 11:51:06
  * @FilePath: \mini-vue\src\reactivity\baseHandlers.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+import { isObject } from "../shared";
 import { track, trigger } from "./effect";
-import { ReactiveFlags } from "./reactive";
+import { reactive, ReactiveFlags, readonly } from "./reactive";
 
 function createGetter(isReadonly = false) {
   return function get(target, key) {
@@ -18,6 +19,11 @@ function createGetter(isReadonly = false) {
     }
 
     const res = Reflect.get(target, key);
+
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res);
+    }
+
     if (!isReadonly) {
       track(target, key);
     }
