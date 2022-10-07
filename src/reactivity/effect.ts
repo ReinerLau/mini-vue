@@ -4,10 +4,14 @@ import { extend } from "../shared";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:38:24
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-04 10:28:43
+ * @LastEditTime: 2022-10-07 11:15:47
  * @FilePath: \mini-vue\src\reactivity\effect.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+// 正在执行的依赖实例
+let activeEffect;
+let shouldTrack;
+
 class ReactiveEffect {
   private _fn: any;
   deps = [];
@@ -21,8 +25,17 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      // 此时 shouldTrack 为 false 或者 undefined，执行也不会收集依赖
+      return this._fn();
+    }
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+    // 此时 shouldTrack 为 true，执行会收集依赖
+    const result = this._fn();
+    // 记得要初始化全局变量
+    shouldTrack = false;
+    return result;
   }
 
   stop() {
@@ -40,10 +53,9 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 }
 
-// 正在执行的依赖实例
-let activeEffect;
 /**
  * @description: 初始化一个effect实例并执行一次传进来的方法
  * @param {*} fn 依赖的方法
@@ -72,6 +84,8 @@ const targetMap = new Map();
  * @return {*}
  */
 export function track(target, key) {
+  if (!isTracking()) return;
+
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -83,8 +97,7 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
-  // 没有 effect 操作，该值可能为 undefined
-  if (!activeEffect) return;
+  if (dep.has(activeEffect)) return;
 
   dep.add(activeEffect);
   // 反向收集当前 effect 被收录其中的依赖集合
@@ -112,4 +125,8 @@ export function trigger(target, key) {
 
 export function stop(runner) {
   runner._effect.stop();
+}
+
+function isTracking() {
+  return shouldTrack && activeEffect;
 }
