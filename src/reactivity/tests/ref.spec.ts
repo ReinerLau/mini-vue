@@ -2,14 +2,14 @@
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-09 22:27:13
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-10 21:54:23
+ * @LastEditTime: 2022-10-10 22:18:40
  * @FilePath: \mini-vue\src\reactivity\tests\ref.spec.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
 import { effect } from "../effect";
 import { reactive } from "../reactive";
-import { isRef, ref, unRef } from "../ref";
+import { isRef, proxyRefs, ref, unRef } from "../ref";
 
 describe("ref", () => {
   it("happy path", () => {
@@ -64,5 +64,25 @@ describe("ref", () => {
     const foo = ref(1);
     expect(unRef(foo)).toBe(1);
     expect(unRef(1)).toBe(1);
+  });
+
+  it("proxyRefs", () => {
+    const user = {
+      age: ref(18),
+      name: "Reiner",
+    };
+
+    const proxyUser = proxyRefs(user);
+    expect(user.age.value).toBe(18);
+    expect(proxyUser.age).toBe(18);
+    expect(proxyUser.name).toBe("Reiner");
+
+    proxyUser.age = 20;
+    expect(proxyUser.age).toBe(20);
+    expect(user.age.value).toBe(20);
+
+    proxyUser.age = ref(20);
+    expect(proxyUser.age).toBe(20);
+    expect(user.age.value).toBe(20);
   });
 });
