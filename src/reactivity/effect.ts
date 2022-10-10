@@ -4,7 +4,7 @@ import { extend } from "../shared";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-02 08:38:24
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-07 11:15:47
+ * @LastEditTime: 2022-10-10 12:31:57
  * @FilePath: \mini-vue\src\reactivity\effect.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -97,6 +97,10 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
+  trackEffect(dep);
+}
+
+export function trackEffect(dep) {
   if (dep.has(activeEffect)) return;
 
   dep.add(activeEffect);
@@ -114,6 +118,10 @@ export function trigger(target, key) {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
 
+  triggerEffects(dep);
+}
+
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
@@ -127,6 +135,6 @@ export function stop(runner) {
   runner._effect.stop();
 }
 
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect;
 }
