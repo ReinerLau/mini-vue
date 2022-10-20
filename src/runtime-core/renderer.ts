@@ -1,11 +1,11 @@
-import { isObject } from "../shared/index";
+import { ShapFlags } from "../shared/ShapFlags";
 import { createComponentInstance, setupComponent } from "./component";
 
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-18 21:57:07
+ * @LastEditTime: 2022-10-20 22:56:53
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,9 +14,9 @@ export function render(vnode, container) {
 }
 
 function patch(vnode, container) {
-  if (typeof vnode.type === "string") {
+  if (vnode.shapFlag & ShapFlags.ELEMENT) {
     processElement(vnode, container);
-  } else if (isObject(vnode.type)) {
+  } else if (vnode.shapFlag & ShapFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, container);
   }
 }
@@ -29,9 +29,9 @@ function mountElement(vnode, container) {
   const el = (vnode.el = document.createElement(vnode.type));
 
   const { children } = vnode;
-  if (typeof children === "string") {
+  if (vnode.shapFlag & ShapFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (vnode.shapFlag & ShapFlags.ARRAY_CHILDREN) {
     mountChildern(vnode, el);
   }
 
