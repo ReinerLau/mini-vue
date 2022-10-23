@@ -1,8 +1,8 @@
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-04 07:32:34
- * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-10 19:53:26
+ * @LastEditors: ReinerLau lk850593913@gmail.com
+ * @LastEditTime: 2022-10-23 11:12:23
  * @FilePath: \mini-vue\src\shared\index.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -15,3 +15,6 @@ export function isObject(val) {
 export function hasChange(oldValue, newValue) {
   return !Object.is(oldValue, newValue);
 }
+
+export const hasOwn = (val, key) =>
+  Object.prototype.hasOwnProperty.call(val, key);

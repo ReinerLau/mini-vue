@@ -4,8 +4,8 @@ import { createComponentInstance, setupComponent } from "./component";
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
- * @LastEditors: reiner850593913 lk850593913@gmail.com
- * @LastEditTime: 2022-10-20 22:56:53
+ * @LastEditors: ReinerLau lk850593913@gmail.com
+ * @LastEditTime: 2022-10-22 10:22:05
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -38,7 +38,13 @@ function mountElement(vnode, container) {
   const { props } = vnode;
   for (const key in props) {
     const val = props[key];
-    el.setAttribute(key, val);
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
+      const event = key.slice(2).toLocaleLowerCase();
+      el.addEventListener(event, val);
+    } else {
+      el.setAttribute(key, val);
+    }
   }
 
   container.append(el);
