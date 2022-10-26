@@ -1,11 +1,12 @@
 import { ShapFlags } from "../shared/ShapFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vnode";
 
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-10-22 10:22:05
+ * @LastEditTime: 2022-10-25 23:22:47
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,11 +15,32 @@ export function render(vnode, container) {
 }
 
 function patch(vnode, container) {
-  if (vnode.shapFlag & ShapFlags.ELEMENT) {
-    processElement(vnode, container);
-  } else if (vnode.shapFlag & ShapFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container);
+  const { type, shapFlag } = vnode;
+
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+    case Text:
+      processText(vnode, container);
+      break;
+    default:
+      if (shapFlag & ShapFlags.ELEMENT) {
+        processElement(vnode, container);
+      } else if (shapFlag & ShapFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container);
+      }
   }
+}
+
+function processText(vnode, container) {
+  const { children } = vnode;
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
+}
+
+function processFragment(vnode, container) {
+  mountChildern(vnode, container);
 }
 
 function processElement(vnode, container) {
