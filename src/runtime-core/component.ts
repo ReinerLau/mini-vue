@@ -7,7 +7,7 @@ import { initSlots } from "./componentSlot";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-16 10:06:03
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-10-24 20:01:36
+ * @LastEditTime: 2022-10-26 22:44:44
  * @FilePath: \mini-vue\src\runtime-core\component.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -44,9 +44,11 @@ function setupStatefulComponent(instance) {
   const { setup } = Component;
 
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
+    setCurrentInstance(null);
 
     handleSetupResult(instance, setupResult);
   }
@@ -66,4 +68,13 @@ function finishComponentSetup(instance) {
   if (Component.render) {
     instance.render = Component.render;
   }
+}
+
+let currentInstance;
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+function setCurrentInstance(value) {
+  currentInstance = value;
 }
