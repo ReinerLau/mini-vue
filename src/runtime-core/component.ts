@@ -2,12 +2,13 @@ import { shallowReadonly } from "../reactivity/reactive";
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlot";
+import { proxyRefs } from "../reactivity/ref";
 
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-16 10:06:03
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-10-27 22:18:23
+ * @LastEditTime: 2022-11-01 20:12:12
  * @FilePath: \mini-vue\src\runtime-core\component.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -21,6 +22,7 @@ export function createComponentInstance(vnode, parent) {
     provides: parent ? parent.provides : {},
     parent,
     slots: {},
+    isMounted: false,
   };
 
   component.emit = emit.bind(null, component) as any;
@@ -58,7 +60,7 @@ function setupStatefulComponent(instance) {
 
 function handleSetupResult(instance, setupResult) {
   if (typeof setupResult === "object") {
-    instance.setupState = setupResult;
+    instance.setupState = proxyRefs(setupResult);
   }
 
   finishComponentSetup(instance);
