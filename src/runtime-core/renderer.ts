@@ -1,4 +1,5 @@
 import { effect } from "../reactivity/effect";
+import { EMPTY_OBJECT } from "../shared";
 import { ShapFlags } from "../shared/ShapFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppApi } from "./createApp";
@@ -8,7 +9,7 @@ import { Fragment, Text } from "./vnode";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-01 20:50:01
+ * @LastEditTime: 2022-11-03 23:10:42
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -61,8 +62,32 @@ export function createRender(options) {
   }
 
   function patchElement(n1, n2, container) {
-    console.log(n1);
-    console.log(n2);
+    const oldProps = n1.props || EMPTY_OBJECT;
+    const newProps = n2.props || EMPTY_OBJECT;
+
+    const el = (n2.el = n1.el);
+
+    patchProps(el, oldProps, newProps);
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      for (let key in newProps) {
+        const newProp = newProps[key];
+        const oldProp = oldProps[key];
+        if (oldProp !== newProp) {
+          hostPatchProp(el, key, newProp);
+        }
+      }
+
+      if (oldProps !== EMPTY_OBJECT) {
+        for (let key in oldProps) {
+          if (!(key in oldProps)) {
+            hostPatchProp(el, key, null);
+          }
+        }
+      }
+    }
   }
 
   function mountElement(vnode, container, parentComponent) {
