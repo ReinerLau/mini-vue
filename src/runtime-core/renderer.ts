@@ -9,7 +9,7 @@ import { Fragment, Text } from "./vnode";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-03 23:10:42
+ * @LastEditTime: 2022-11-05 00:05:59
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -18,6 +18,8 @@ export function createRender(options) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options;
 
   function render(vnode, container) {
@@ -50,24 +52,54 @@ export function createRender(options) {
   }
 
   function processFragment(n1, n2, container, parentComponent) {
-    mountChildern(n2, container, parentComponent);
+    mountChildern(n2.children, container, parentComponent);
   }
 
   function processElement(n1, n2, container, parentComponent) {
     if (!n1) {
       mountElement(n2, container, parentComponent);
     } else {
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parentComponent);
     }
   }
 
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     const oldProps = n1.props || EMPTY_OBJECT;
     const newProps = n2.props || EMPTY_OBJECT;
 
     const el = (n2.el = n1.el);
 
+    patchChildren(n1, n2, el, parentComponent);
     patchProps(el, oldProps, newProps);
+  }
+
+  function patchChildren(n1, n2, container, parentComponent) {
+    const prevShapFlag = n1.shapFlag;
+    const c1 = n1.children;
+    const shapFlag = n2.shapFlag;
+    const c2 = n2.children;
+
+    if (shapFlag & ShapFlags.TEXT_CHILDREN) {
+      if (prevShapFlag & ShapFlags.ARRAY_CHILDREN) {
+        unmountChildren(n1.children);
+        hostSetElementText(container, c2);
+      }
+      if (c1 !== c2) {
+        hostSetElementText(container, c2);
+      }
+    } else {
+      if (prevShapFlag & ShapFlags.TEXT_CHILDREN) {
+        hostSetElementText(container, "");
+        mountChildern(c2, container, parentComponent);
+      }
+    }
+  }
+
+  function unmountChildren(children) {
+    children.forEach((child) => {
+      const el = child.el;
+      hostRemove(el);
+    });
   }
 
   function patchProps(el, oldProps, newProps) {
@@ -97,7 +129,7 @@ export function createRender(options) {
     if (vnode.shapFlag & ShapFlags.TEXT_CHILDREN) {
       el.textContent = children;
     } else if (vnode.shapFlag & ShapFlags.ARRAY_CHILDREN) {
-      mountChildern(vnode, el, parentComponent);
+      mountChildern(vnode.children, el, parentComponent);
     }
 
     const { props } = vnode;
@@ -110,8 +142,8 @@ export function createRender(options) {
     hostInsert(el, container);
   }
 
-  function mountChildern(vnode, el, parentComponent) {
-    vnode.children.forEach((v) => {
+  function mountChildern(children, el, parentComponent) {
+    children.forEach((v) => {
       patch(null, v, el, parentComponent);
     });
   }
