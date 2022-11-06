@@ -9,7 +9,7 @@ import { Fragment, Text } from "./vnode";
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-05 23:06:25
+ * @LastEditTime: 2022-11-06 22:01:00
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -158,6 +158,49 @@ export function createRender(options) {
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
+      }
+    } else {
+      // 中间对比
+      const s1 = i;
+      const s2 = i;
+
+      // 理应最大被 patch 的次数
+      const toBePatched = e2 - s2 + 1;
+      // 已经 patch 的次数
+      let patched = 0;
+
+      const keyToNewIndexMap = new Map();
+
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+
+      let newIndex;
+      for (let i = s1; i <= e1; i++) {
+        const prevChild = c1[i];
+
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        if (prevChild.key != null) {
+          newIndex = keyToNewIndexMap.get(prevChild.key);
+        } else {
+          for (let j = s2; j <= e2; j++) {
+            if (isSomeVNodeType(prevChild, c2[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+        if (newIndex === undefined) {
+          hostRemove(prevChild.el);
+        } else {
+          patch(prevChild, c2[newIndex], container, parentComponent, null);
+          patched++;
+        }
       }
     }
   }
