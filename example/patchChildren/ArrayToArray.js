@@ -2,7 +2,7 @@
  * @Author: ReinerLau lk850593913@gmail.com
  * @Date: 2022-11-05 20:13:06
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-06 22:02:24
+ * @LastEditTime: 2022-11-13 11:14:46
  * @FilePath: \mini-vue\example\patchChildren\ArrayToArray.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -110,12 +110,50 @@ export const ArrayToArray = {
     // ];
 
     // 中间对比 - 删除 - 老的比新的多
+    // const prevChildren = [
+    //   h("div", { key: "A" }, "A"),
+    //   h("div", { key: "B" }, "B"),
+    //   h("div", { key: "C", id: "c-prev" }, "C"),
+    //   h("div", { key: "E" }, "E"),
+    //   h("div", { key: "D" }, "D"),
+    //   h("div", { key: "F" }, "F"),
+    //   h("div", { key: "G" }, "G"),
+    // ];
+    // const nextChildren = [
+    //   h("div", { key: "A" }, "A"),
+    //   h("div", { key: "B" }, "B"),
+    //   h("div", { key: "E" }, "E"),
+    //   h("div", { key: "C", id: "c-next" }, "C"),
+    //   h("div", { key: "F" }, "F"),
+    //   h("div", { key: "G" }, "G"),
+    // ];
+
+    // 中间对比 - 移动
+    // const prevChildren = [
+    //   h("div", { key: "A" }, "A"),
+    //   h("div", { key: "B" }, "B"),
+    //   h("div", { key: "C" }, "C"),
+    //   h("div", { key: "D" }, "D"),
+    //   h("div", { key: "E" }, "E"),
+    //   h("div", { key: "F" }, "F"),
+    //   h("div", { key: "G" }, "G"),
+    // ];
+    // const nextChildren = [
+    //   h("div", { key: "A" }, "A"),
+    //   h("div", { key: "B" }, "B"),
+    //   h("div", { key: "E" }, "E"),
+    //   h("div", { key: "C" }, "C"),
+    //   h("div", { key: "D" }, "D"),
+    //   h("div", { key: "F" }, "F"),
+    //   h("div", { key: "G" }, "G"),
+    // ];
+
+    // 中间对比 - 创建
     const prevChildren = [
       h("div", { key: "A" }, "A"),
       h("div", { key: "B" }, "B"),
-      h("div", { key: "C", id: "c-prev" }, "C"),
+      h("div", { key: "C" }, "C"),
       h("div", { key: "E" }, "E"),
-      h("div", { key: "D" }, "D"),
       h("div", { key: "F" }, "F"),
       h("div", { key: "G" }, "G"),
     ];
@@ -123,7 +161,8 @@ export const ArrayToArray = {
       h("div", { key: "A" }, "A"),
       h("div", { key: "B" }, "B"),
       h("div", { key: "E" }, "E"),
-      h("div", { key: "C", id: "c-next" }, "C"),
+      h("div", { key: "C" }, "C"),
+      h("div", { key: "D" }, "D"),
       h("div", { key: "F" }, "F"),
       h("div", { key: "G" }, "G"),
     ];
