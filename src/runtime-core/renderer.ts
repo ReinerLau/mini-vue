@@ -4,12 +4,13 @@ import { ShapFlags } from "../shared/ShapFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppApi } from "./createApp";
 import { Fragment, Text } from "./vnode";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 
 /*
  * @Author: reiner850593913 lk850593913@gmail.com
  * @Date: 2022-10-15 10:44:19
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-13 11:14:08
+ * @LastEditTime: 2022-11-13 14:04:39
  * @FilePath: \mini-vue\src\runtime-core\renderer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -293,18 +294,36 @@ export function createRender(options) {
   }
 
   function processComponent(n1, n2, container, parentComponent, anchor) {
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      updateComponent(n1, n2);
+    }
+  }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
 
   function mountComponent(initialVNode, container, parentComponent, anchor) {
-    const instance = createComponentInstance(initialVNode, parentComponent);
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ));
 
     setupComponent(instance);
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
 
   function setupRenderEffect(instance, initialVNode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         const { proxy } = instance;
         const subTree = (instance.subTree = instance.render.call(proxy));
@@ -314,6 +333,12 @@ export function createRender(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
+
         const { proxy } = instance;
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
@@ -321,6 +346,12 @@ export function createRender(options) {
         patch(prevSubTree, subTree, container, instance, anchor);
       }
     });
+  }
+
+  function updateComponentPreRender(instance, nextVNode) {
+    instance.vnode = nextVNode;
+    instance.next = null;
+    instance.props = nextVNode.props;
   }
 
   return {
