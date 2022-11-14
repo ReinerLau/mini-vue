@@ -2,7 +2,7 @@
  * @Author: ReinerLau lk850593913@gmail.com
  * @Date: 2022-11-13 20:33:47
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-14 20:58:37
+ * @LastEditTime: 2022-11-14 21:52:30
  * @FilePath: \mini-vue\src\compiler-core\tests\parse.spec.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -29,6 +29,16 @@ describe("Parse", () => {
       expect(ast.children[0]).toStrictEqual({
         type: NodeTypes.ELEMENT,
         tag: "div",
+      });
+    });
+  });
+
+  describe("text", () => {
+    it("simple text", () => {
+      const ast = baseParse("some text");
+      expect(ast.children[0]).toStrictEqual({
+        type: NodeTypes.TEXT,
+        content: "some text",
       });
     });
   });

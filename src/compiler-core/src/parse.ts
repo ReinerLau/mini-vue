@@ -4,7 +4,7 @@ import { NodeTypes } from "./ast";
  * @Author: ReinerLau lk850593913@gmail.com
  * @Date: 2022-11-13 20:40:42
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-14 21:37:49
+ * @LastEditTime: 2022-11-14 22:03:33
  * @FilePath: \mini-vue\src\compiler-core\src\parse.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -30,8 +30,28 @@ function parseChildren(context) {
       node = parseElement(context);
     }
   }
+
+  if (!node) {
+    node = parseText(context);
+  }
+
   nodes.push(node);
   return nodes;
+}
+
+function parseText(context) {
+  const content = parseTextData(context, context.source.length);
+
+  advanceBy(context, content.length);
+
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  };
+}
+
+function parseTextData(context: any, length: any) {
+  return context.source.slice(0, length);
 }
 
 function parseElement(context) {
@@ -66,7 +86,7 @@ function parseInterpolation(context) {
   );
   advanceBy(context, openDelimiter.length);
   const rawContentLength = closeIndex - openDelimiter.length;
-  const rawContent = context.source.slice(0, rawContentLength);
+  const rawContent = parseTextData(context, rawContentLength);
   const content = rawContent.trim();
   advanceBy(context, rawContentLength + closeDelimiter.length);
 
