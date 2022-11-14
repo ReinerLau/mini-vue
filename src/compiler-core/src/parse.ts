@@ -4,10 +4,15 @@ import { NodeTypes } from "./ast";
  * @Author: ReinerLau lk850593913@gmail.com
  * @Date: 2022-11-13 20:40:42
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-13 21:34:07
+ * @LastEditTime: 2022-11-14 21:37:49
  * @FilePath: \mini-vue\src\compiler-core\src\parse.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+const enum TagTypes {
+  START,
+  END,
+}
+
 export function baseParse(content: string) {
   const context = createParseContext(content);
 
@@ -17,11 +22,38 @@ export function baseParse(content: string) {
 function parseChildren(context) {
   const nodes: any = [];
   let node;
-  if (context.source.startsWith("{{")) {
+  const s = context.source;
+  if (s.startsWith("{{")) {
     node = parseInterpolation(context);
+  } else if (s[0] === "<") {
+    if (/[a-z]/i.test(s[1])) {
+      node = parseElement(context);
+    }
   }
   nodes.push(node);
   return nodes;
+}
+
+function parseElement(context) {
+  const element = parseTag(context, TagTypes.START);
+  parseTag(context, TagTypes.END);
+
+  return element;
+}
+
+function parseTag(context: any, type: TagTypes) {
+  const match: any = /^<\/?([a-z]*)/i.exec(context.source);
+  const tag = match[1];
+
+  advanceBy(context, match[0].length);
+  advanceBy(context, 1);
+
+  if (type === TagTypes.END) return;
+
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
+  };
 }
 
 function parseInterpolation(context) {
