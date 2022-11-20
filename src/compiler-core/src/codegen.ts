@@ -1,11 +1,16 @@
+import { isString } from "../../shared";
 import { NodeTypes } from "./ast";
-import { helperMapName, TO_DISPLAY_STRING } from "./runtimeHelpers";
+import {
+  CREATE_ELEMENT_VNODE,
+  helperMapName,
+  TO_DISPLAY_STRING,
+} from "./runtimeHelpers";
 
 /*
  * @Author: ReinerLau lk850593913@gmail.com
  * @Date: 2022-11-18 22:11:37
  * @LastEditors: ReinerLau lk850593913@gmail.com
- * @LastEditTime: 2022-11-19 12:01:20
+ * @LastEditTime: 2022-11-20 16:55:06
  * @FilePath: \mini-vue\src\compiler-core\src\codegen.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -63,10 +68,59 @@ function genNode(node, context) {
     case NodeTypes.SIMPLE_EXPRESSION:
       genExpression(node, context);
       break;
+    case NodeTypes.ELEMENT:
+      genElement(node, context);
+      break;
+    case NodeTypes.COMPOUND_EXPRESSION:
+      genCompound(node, context);
     default:
       break;
   }
 }
+
+function genCompound(node, context) {
+  const { children } = node;
+  const { push } = context;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (isString(child)) {
+      push(child);
+    } else {
+      genNode(child, context);
+    }
+  }
+}
+
+function genElement(node, context) {
+  const { push, helper } = context;
+  const { tag, children, props } = node;
+  push(`${helper(CREATE_ELEMENT_VNODE)}(`);
+  genNodeList(genNullable([tag, props, children]), context);
+
+  push(")");
+}
+
+function genNullable(args) {
+  return args.map((arg) => arg || "null");
+}
+
+function genNodeList(nodes, context) {
+  const { push } = context;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (isString(node)) {
+      push(node);
+    } else {
+      genNode(node, context);
+    }
+
+    if (i < nodes.length - 1) {
+      push(", ");
+    }
+  }
+}
+
 function genText(node: any, context: any) {
   const { push } = context;
   push(`"${node.content}"`);
